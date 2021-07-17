@@ -80,8 +80,7 @@
 (global-set-key (kbd "C-k") 'kill-buffer-and-window)
             
 ;;;; remap other frame and window command
-(global-set-key (kbd "s-o") 'other-window)
-(global-set-key (kbd "M-o") 'other-frame)
+(global-set-key (kbd "M-o") 'other-window)
 
 ;;; Outline Mode
 ;; (use-package bicycle
@@ -409,3 +408,7 @@
 
 
 
+
+
+;;; SQL
+(require 'sql)

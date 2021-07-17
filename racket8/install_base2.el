@@ -20,4 +20,5 @@
 (package-install 'racket-mode)
 (package-install 'buffer-move)
 (package-install 'magit)
+(package-install 'sql)
 ;;(package-install 'uniquify)

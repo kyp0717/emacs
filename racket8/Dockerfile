@@ -35,7 +35,7 @@ RUN apt-get update && \
     default-jre \
     zsh \
     wget \
-    tmux \
+    tmux sudo sqlite3 \
     && rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache/*
 
 
@@ -66,7 +66,8 @@ RUN raco pkg config --set catalogs \
 #    draw-x11-x86_64-linux-natipkg \
 #    draw-ttf-x86_64-linux-natipkg
 
-RUN echo "a" | raco pkg install --scope installation drracket
+#RUN echo "a" | raco pkg install --scope installation drracket
+RUN raco pkg install --auto --scope installation db-lib
 
 ### Env Var and Create Emacs User
 # Fix "Couldn't register with accessibility bus" error message
@@ -102,7 +103,7 @@ RUN emacs -l ~/.emacs.d/install_base2.el -batch
 
 ### Install tools
 RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-RUN sed -i "s|robbyrussell|bira|g" ~/.zshrc
+RUN sed -i "s|robbyrussell|jispwoso|g" ~/.zshrc
 RUN git clone https://github.com/gpakosz/.tmux.git && \
     ln -s -f .tmux/.tmux.conf && \
     cp .tmux/.tmux.conf.local .
@@ -114,9 +115,11 @@ RUN echo 'alias xclip="xclip -selection c"' >> ~/.zshrc
 RUN echo 'set -g default-command $SHELL' >> ~/.tmux.conf.local
 
 ### Install racket packages
-RUN echo "a" | raco pkg install http-easy yaml rfc6455 web-server request relation
+RUN raco pkg install --auto http-easy yaml rfc6455 web-server request relation 
 
 ### Start Up
+
+RUN mkdir ~/sqlite
 COPY --chown=phage:phage ./init.el /home/phage/.emacs.d/
 COPY --chown=phage:phage ./config.el /home/phage/.emacs.d/
 ENTRYPOINT ["tmux", "-u"]
