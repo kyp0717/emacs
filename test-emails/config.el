@@ -1,6 +1,7 @@
 ;;; Geneneral Setting
-;;;; esc to quit everthing
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+;;;; load all the icons
+(all-the-icons-install-fonts t)
 ;;;; modus theme
 (add-to-list 'load-path "~/.emacs.d/modus-themes")
 (add-to-list 'load-path "~/.emacs.d/custom")
@@ -29,7 +30,7 @@
             
 ;;;; line num
 (require 'display-line-numbers)
-(defcustom display-line-numbers-exempt-modes '(vterm-mode eshell-mode shell-mode term-mode ansi-term-mode racket-repl-mode)
+(defcustom display-line-numbers-exempt-modes '(vterm-mode eshell-mode shell-mode term-mode ansi-term-mode)
   "Major modes on which to disable the linum mode, exempts them from global requirement"
   :group 'display-line-numbers
   :type 'list
@@ -42,16 +43,13 @@
        (not (minibufferp)))
       (display-line-numbers-mode)))
 
-(global-display-line-numbers-mode t)
+(global-display-line-numbers-mode)
 ;;;; start up msg repress
 (tool-bar-mode -1)
 (toggle-scroll-bar -1)
-(menu-bar-mode -1)
-
 (setq inhibit-startup-screen t)  
 (setq make-backup-files nil) ; stop creating ~ files
 (setq warning-minimum-level :error)
-
 ;;;; line effects
 (global-hl-line-mode t) ;; This highlights the current line in the buffer
 (use-package beacon ;; This applies a beacon effect to the highlighted line
@@ -85,9 +83,6 @@
             
 ;;;; remap other frame and window command
 (global-set-key (kbd "M-o") 'other-window)
-(global-set-key (kbd "s-o") 'other-window)
-(global-set-key (kbd "s-3") 'split-window-right)
-(global-set-key (kbd "s-2") 'split-window-below)
 ;;;; highlighting and region
 (set-face-background 'hl-line "#3e4446")
 (set-face-foreground 'highlight nil)
@@ -96,53 +91,52 @@
 ;;;; increase minibuffer font size
 (defun increase-minibuffer-font-size ()
        (set (make-local-variable 'face-remapping-alist)
-          '((default :height 1.35))))
+          '((default :height 1.5))))
 
 (add-hook 'minibuffer-setup-hook 'increase-minibuffer-font-size)
 
 ;;; Outline Mode
-;;;; main
-;;Enables outline-minor-mode for *ALL* programming buffers
+;; Require packages for following code
+(require 'dash)
+(require 'outshine)
+(require 'prog-mode)
+;; (use-package prog-mode
+;;   :config
+;;  (add-hook 'prog-mode-hook 'outline-minor-mode)
+;;  (add-hook 'prog-mode-hook 'hs-minor-mode))
+;; Enables outline-minor-mode for *ALL* programming buffers
 (add-hook 'prog-mode-hook 'outline-minor-mode)
-(add-hook 'prog-mode-hook 'hs-minor-mode)
-(add-hook 'outline-minor-mode-hook 'outline-minor-faces-add-font-lock-keywords)
+(add-hook 'prog-mode-hook 'hs-minor-mode))
+
+;; Required for outshine
+(add-hook 'outline-minor-mode-hook 'outshine-hook-function)
+
+
+(use-package outline-minor-faces
+  :after outline
+  :config (add-hook 'outline-minor-mode-hook
+                    'outline-minor-faces-add-font-lock-keywords))
+
+;; Narrowing now works within the headline rather than requiring to be on it
+(advice-add 'outshine-narrow-to-subtree :before
+            (lambda (&rest args) (unless (outline-on-heading-p t)
+                                   (outline-previous-visible-heading 1))))
 
 (setq my-black "#1b1b1e")
 (custom-theme-set-faces
  'modus-vivendi
- `(outline-1 ((t (:height 1.15 :background "#556b2f" :weight bold))))
- `(outline-2 ((t (:height 1.05 :foreground "#b58900" :weight bold)))))
-;; (custom-theme-set-faces
-;;  'modus-vivendi
-;;  `(outline-1 ((t (:height 1.25 :background "#268bd2"
-;;                           :foreground ,my-black :weight bold))))
-;;  `(outline-2 ((t (:height 1.15 :background "#2aa198"
-;;                           :foreground ,my-black :weight bold))))
-;;  `(outline-3 ((t (:height 1.05 :background "#b58900"
-;;                           :foreground ,my-black :weight bold)))))
-
-
-;;;; experiment
-;; not working
-;; (require 'dash)
-;; (require 'outshine)
-;; (add-hook 'prog-mode-hook 'outline-minor-mode)
-;; (add-hook 'prog-mode-hook 'hs-minor-mode)
-;; (add-hook 'emacs-lisp-mode-hook 'outshine-mode)
-;; (add-hook 'racket-mode-hook 'outshine-mode)
-;; (add-hook 'docker-mode-hook 'outshine-mode)
-
-;; Narrowing now works within the headline rather than requiring to be on it
-;; (advice-add 'outshine-narrow-to-subtree :before
-;;             (lambda (&rest args) (unless (outline-on-heading-p t)
-;;                                    (outline-previous-visible-heading 1))))
-
+ `(outline-1 ((t (:height 1.25 :background "#268bd2"
+                          :foreground ,my-black :weight bold))))
+ `(outline-2 ((t (:height 1.15 :background "#2aa198"
+                          :foreground ,my-black :weight bold))))
+ `(outline-3 ((t (:height 1.05 :background "#b58900"
+                          :foreground ,my-black :weight bold)))))
 
 
 ;;;; outline within dockerfile
 (add-hook 'dockerfile-mode-hook
   (lambda ()
-    (setq outline-regexp "###\\(#*\\)")))
+    (setq outline-regexp "##[#]\\{1,8\\} ")))
 ;;";;;\\(;* [^]\\|###autoload\\)\\|("
 ; note that the "^" is *implicit* at the beginning of the regexp
 
@@ -398,76 +392,6 @@
 
 
 
-;;; Racket Setup
-;;;; main racket setup
-;;(show-paren-mode 1)
-(setq show-paren-delay 0)
-(require 'racket-mode)
 
+;;; Modeline
 
-(use-package rainbow-delimiters
-             :ensure t
-             :config (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
-
-;; Allows moving through wrapped lines as they appear
-(add-hook 'racket-mode-hook #'racket-unicode-input-method-enable)
-(add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable)
-(define-key racket-mode-map (kbd "S-<return>") 'racket-send-definition)
-(define-key racket-mode-map (kbd "C-S-<return>") 'racket-send-region)
-(define-key racket-mode-map (kbd "C-\\") 'racket-insert-lambda)
-
-;;;; paredit setup
-(use-package paredit
-  :ensure t
-  :config
-  (dolist (m '(emacs-lisp-mode-hook
-	       racket-mode-hook
-	       racket-repl-mode-hook))
-    (add-hook m #'enable-paredit-mode))
-  (bind-keys :map paredit-mode-map
-	     ("{"   . paredit-open-curly)
-	     ("}"   . paredit-close-curly))
-  (unless terminal-frame
-    (bind-keys :map paredit-mode-map
-	       ("M-[" . paredit-wrap-square)
-	       ("M-{" . paredit-wrap-curly))))
-
-;; (add-hook 'emacs-lisp-mode-hook 'evil-paredit-mode)
-;; (add-hook 'racket-mode-hook #'paredit-mode)
-;; (add-hook 'racket-mode-hook 'evil-paredit-mode)
-;;;; display repl in another frame
-
-(setq display-buffer-alist nil)
-(add-to-list 'display-buffer-alist
-             '("\\`\\*Racket REPL"
-               (display-buffer-reuse-window
-                display-buffer-pop-up-frame)
-               (reusable-frames . 0)
-               (inhibit-same-window . t)))
-
-
-;;; Embark
-
-(require 'marginalia)
-(marginalia-mode)
-
-(advice-add #'marginalia-cycle :after
-	    (lambda () (when (bound-and-true-p selectru-mode)
-			     (selectrum-exhibit 'keep-selected))))
-
-(require 'embark)
-(bind-key "C-S-a" 'embark-act)
-
-(require 'embark-consult)
-(add-hook 'embark-collect-mode 'embark-consult-preview-minor-mode)
-
-
-
-
-
-;;; SQL
-(require 'sql)
-
-;;; modeline config
-(require 'doom-modeline)
-(doom-modeline-mode 1)
