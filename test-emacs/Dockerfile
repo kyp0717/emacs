@@ -39,35 +39,9 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache/*
 
 
-### Install Racket
-ENV RACKET_INSTALLER_URL="https://mirror.racket-lang.org/installers/8.1/racket-minimal-8.1-x86_64-linux-natipkg-cs.sh"
-# ARG RACKET_VERSIN
-
-RUN wget --output-document=racket-install.sh -q ${RACKET_INSTALLER_URL} && \
-    echo "yes\n1\n" | sh racket-install.sh --create-dir --unix-style --dest /usr/ && \
-    rm racket-install.sh
-
-### Config Racket
-
 ENV SSL_CERT_FILE="/etc/ssl/certs/ca-certificates.crt"
 ENV SSL_CERT_DIR="/etc/ssl/certs"
 
-RUN raco setup
-RUN raco pkg config --set catalogs \
-    "https://download.racket-lang.org/releases/8.1/catalog/" \
-    "https://pkg-build.racket-lang.org/server/built/catalog/" \
-    "https://pkgs.racket-lang.org" \
-    "https://planet-compats.racket-lang.org"
-
-# RUN raco pkg install \ 
-#    srfi-lite-lib \
-#    zo-lib \
-#    draw-x86_64-linux-natipkg-3 \
-#    draw-x11-x86_64-linux-natipkg \
-#    draw-ttf-x86_64-linux-natipkg
-
-#RUN echo "a" | raco pkg install --scope installation drracket
-RUN raco pkg install --auto --scope installation db-lib
 
 ### Env Var and Create Emacs User
 # Fix "Couldn't register with accessibility bus" error message
@@ -113,12 +87,9 @@ COPY --chown=phage:phage ./.zsh_history /home/phage/
 RUN echo 'alias xclip="xclip -selection c"' >> ~/.zshrc
 RUN echo 'set -g default-command $SHELL' >> ~/.tmux.conf.local
 
-### Install racket packages
-RUN raco pkg install --auto http-easy yaml rfc6455 web-server request relation 
 
 ### Start Up
 
-RUN mkdir ~/sqlite
 COPY --chown=phage:phage ./init.el /home/phage/.emacs.d/
 COPY --chown=phage:phage ./config.el /home/phage/.emacs.d/
 ENTRYPOINT ["tmux", "-u"]
