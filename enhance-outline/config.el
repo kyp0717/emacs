@@ -81,28 +81,29 @@
             
 ;;;; remap other frame and window command
 (global-set-key (kbd "M-o") 'other-window)
-;;;; highlighting and region
-(set-face-background 'hl-line "#3e4446")
-(set-face-foreground 'highlight nil)
-;; (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
-(set-face-attribute 'region nil :background "MediumBlue" :foreground "#ffffff")
 
-;;; Outline Mode
+;;; Outline Mode Config
+;; (use-package bicycle
+;;   :after outline
+;;   :bind (:map outline-minor-mode-map
+;; 	      ;; ("<C-tab>" . bicycle-cycle)
+;; 	      ("<C-tab>" . bicycle-cycle-global)))
 
 ;; Require packages for following code
 (require 'dash)
 (require 'outshine)
-
 
 (use-package prog-mode
   :config
  (add-hook 'prog-mode-hook 'outline-minor-mode)
  (add-hook 'prog-mode-hook 'hs-minor-mode))
 
-(use-package outline-minor-faces
-  :after outline
-  :config (add-hook 'outline-minor-mode-hook
-                    'outline-minor-faces-add-font-lock-keywords))
+;; (use-package outline-minor-faces
+;;   :after outline
+;;   :config (add-hook 'outline-minor-mode-hook
+;;                     'outline-minor-faces-add-font-lock-keywords))
+
+
 ;; Required for outshine
 (add-hook 'outline-minor-mode-hook 'outshine-hook-function)
 
@@ -123,7 +124,6 @@
                           :foreground ,my-black :weight bold))))
  `(outline-3 ((t (:height 1.05 :background "#b58900"
                           :foreground ,my-black :weight bold)))))
-
 
 ;;;; outline within dockerfile
 (add-hook 'dockerfile-mode-hook
@@ -451,3 +451,10 @@
 
 ;;; SQL
 (require 'sql)
+
+
+;;; test
+(set-face-background 'hl-line "#3e4446")
+(set-face-foreground 'highlight nil)
+;; (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
+(set-face-attribute 'region nil :background "MediumBlue" :foreground "#ffffff")

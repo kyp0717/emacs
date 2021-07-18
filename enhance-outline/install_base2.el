@@ -21,6 +21,6 @@
 (package-install 'buffer-move)
 (package-install 'magit)
 (package-install 'sql)
-(package-install 'dash)
 (package-install 'outshine)
+(package-install 'dash)
 ;;(package-install 'uniquify)
