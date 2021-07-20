@@ -38,12 +38,17 @@ RUN apt-get update && \
     tmux sudo sqlite3 \
     && rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache/*
 
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y isync 
+ 
+
+### Config Racket
 
 ENV SSL_CERT_FILE="/etc/ssl/certs/ca-certificates.crt"
 ENV SSL_CERT_DIR="/etc/ssl/certs"
 
-
-### Env Var and Create Emacs User
+    ### Env Var and Create Emacs User
 # Fix "Couldn't register with accessibility bus" error message
 ENV NO_AT_BRIDGE=1
 ENV UNAME="phage" \
@@ -90,6 +95,7 @@ RUN echo 'set -g default-command $SHELL' >> ~/.tmux.conf.local
 
 ### Start Up
 
+RUN mkdir ~/sqlite
 COPY --chown=phage:phage ./init.el /home/phage/.emacs.d/
 COPY --chown=phage:phage ./config.el /home/phage/.emacs.d/
 ENTRYPOINT ["tmux", "-u"]

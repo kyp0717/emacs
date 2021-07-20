@@ -80,19 +80,19 @@
 ;;;; enable drag and drop
 (setq mouse-drag-and-drop-region t)
 (setq mouse-drag-and-drop-region-cut-when-buffers-differ t)
-;;;; remap kill buffer and window
-(global-set-key (kbd "C-k") 'kill-buffer-and-window)
-            
-;;;; remap other frame and window command
-(global-set-key (kbd "M-o") 'other-window)
-(global-set-key (kbd "s-o") 'other-window)
+;;;; remap buffer, window, frame
+(global-set-key (kbd "s-k") 'kill-buffer)
+(global-set-key (kbd "s-1") 'delete-other-windows)
 (global-set-key (kbd "s-3") 'split-window-right)
 (global-set-key (kbd "s-2") 'split-window-below)
+(global-set-key (kbd "M-o") 'other-window)
+(global-set-key (kbd "s-o") 'other-window)
 ;;;; highlighting and region
 (set-face-background 'hl-line "#3e4446")
 (set-face-foreground 'highlight nil)
 ;; (set-face-attribute 'region nil :background "#666" :foreground "#ffffff")
-(set-face-attribute 'region nil :background "MediumBlue" :foreground "#ffffff")
+(setq my-black "#1b1b1e")
+(set-face-attribute 'region nil :background "#ffd700" :foreground my-black)
 ;;;; increase minibuffer font size
 (defun increase-minibuffer-font-size ()
        (set (make-local-variable 'face-remapping-alist)
@@ -110,7 +110,7 @@
 (setq my-black "#1b1b1e")
 (custom-theme-set-faces
  'modus-vivendi
- `(outline-1 ((t (:height 1.15 :background "#556b2f" :weight bold))))
+ `(outline-1 ((t (:height 1.15 :background "Mediumblue" ))))
  `(outline-2 ((t (:height 1.05 :foreground "#b58900" :weight bold)))))
 ;; (custom-theme-set-faces
 ;;  'modus-vivendi
@@ -122,7 +122,33 @@
 ;;                           :foreground ,my-black :weight bold)))))
 
 
-;;;; experiment
+;;;; experiment1
+;; (defun -add-font-lock-kwds (FONT-LOCK-ALIST)
+;;   (font-lock-add-keywords
+;;    nil (--map (-let (((rgx uni-point) it))
+;;                 `(,rgx (0 (progn
+;;                             (compose-region (match-beginning 1) (match-end 1)
+;;                                             ,(concat "\t" (list uni-point)))
+;;                             nil))))
+;;               FONT-LOCK-ALIST)))
+
+;; (defmacro add-font-locks (FONT-LOCK-HOOKS-ALIST)
+;;   `(--each ,FONT-LOCK-HOOKS-ALIST
+;;      (-let (((font-locks . mode-hooks) it))
+;;        (--each mode-hooks
+;;          (add-hook it (-partial '-add-font-lock-kwds
+;;                                 (symbol-value font-locks)))))))
+
+;; (defconst emacs-outlines-font-lock-alist
+;;   ;; Outlines
+;;   '(("\\(^;;;\\) "          ?■)
+;;     ("\\(^;;;;\\) "         ?○)
+;;     ("\\(^;;;;;\\) "        ?✸)
+;;     ("\\(^;;;;;;\\) "       ?✿)))
+
+
+
+;;;; experiment2
 ;; not working
 ;; (require 'dash)
 ;; (require 'outshine)
@@ -301,39 +327,39 @@
          ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
          ("C-M-#" . consult-register)
          ;; Other custom bindings
-         ("s-y" . consult-yank-pop)                ;; orig. yank-pop
          ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+         ("s-y" . consult-yank-pop)                ;; orig. yank-pop
          ("<help> a" . consult-apropos)            ;; orig. apropos-command
          ;; M-g bindings (goto-map)
-         ("M-<menu> e" . consult-compile-error)
-         ("M-<menu> f" . consult-flymake)               ;; Alternative: consult-flycheck
-         ("s-g" . consult-goto-line)             ;; orig. goto-line
-         ("M-<menu> M-g" . consult-goto-line)           ;; orig. goto-line
-         ("s-o" . consult-outline)               ;; Alternative: consult-org-heading
-         ("M-<menu> m" . consult-mark)
-         ("M-<menu> k" . consult-global-mark)
-         ("M-<menu> i" . consult-imenu)
-         ("M-<menu> I" . consult-project-imenu)
+         ("M-g e" . consult-compile-error)
+         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+         ("M-g g" . consult-goto-line)             ;; orig. goto-line
+         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+         ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+         ("M-g m" . consult-mark)
+         ("M-g k" . consult-global-mark)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-project-imenu)
          ;; M-s bindings (search-map)
          ("s-f" . consult-find)
-         ("M-<menu> L" . consult-locate)
-         ("M-<menu> g" . consult-grep)
-         ("M-<menu> G" . consult-git-grep)
-         ("M-<menu> r" . consult-ripgrep)
+         ("M-s L" . consult-locate)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("s-r" . consult-ripgrep)
          ("s-l" . consult-line)
-         ("M-<menu> m" . consult-multi-occur)
-         ("M-<menu> k" . consult-keep-lines)
-         ("M-<menu> u" . consult-focus-lines)
+         ("M-s m" . consult-multi-occur)
+         ("M-s k" . consult-keep-lines)
+         ("M-s u" . consult-focus-lines)
          ;; Isearch integration
          ("s-e" . consult-isearch)
          :map isearch-mode-map
          ("M-e" . consult-isearch)                 ;; orig. isearch-edit-string
-         ("M-<menu> e" . consult-isearch)               ;; orig. isearch-edit-string
-         ("M-<menu> l" . consult-line))                 ;; needed by consult-line to detect isearch
+         ("s-e" . consult-isearch)               ;; orig. isearch-edit-string
+         ("s-l" . consult-line))                 ;; needed by consult-line to detect isearch
 
   ;; Enable automatic preview at point in the *Completions* buffer.
   ;; This is relevant when you use the default completion UI,
-  ;; and not necessary for Selectrum, Vertico etc.
+  ;; and not necessary for Vertico, Selectrum, etc.
   :hook (completion-list-mode . consult-preview-at-point-mode)
 
   ;; The :init configuration is always executed (Not lazy)
@@ -348,6 +374,9 @@
   ;; Optionally tweak the register preview window.
   ;; This adds thin lines, sorting and hides the mode line of the window.
   (advice-add #'register-preview :override #'consult-register-window)
+
+  ;; Optionally replace `completing-read-multiple' with an enhanced version.
+  (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
 
   ;; Use Consult to select xref locations with preview
   (setq xref-show-xrefs-function #'consult-xref
@@ -395,8 +424,6 @@
   ;;;; 4. locate-dominating-file
   ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
 )
-
-
 
 ;;; Racket Setup
 ;;;; main racket setup
