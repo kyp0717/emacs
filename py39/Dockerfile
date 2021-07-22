@@ -35,40 +35,16 @@ RUN apt-get update && \
     default-jre \
     zsh \
     wget \
-    tmux sudo sqlite3 \
-    cmake libtool libtool-bin mu4e \
+    tmux \
+    sudo \
+    lsb-release python3-pip cmake libtool libtool-bin\
     && rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache/*
-
-
-### Install Racket
-ENV RACKET_INSTALLER_URL="https://mirror.racket-lang.org/installers/8.1/racket-minimal-8.1-x86_64-linux-natipkg-cs.sh"
-# ARG RACKET_VERSIN
-
-RUN wget --output-document=racket-install.sh -q ${RACKET_INSTALLER_URL} && \
-    echo "yes\n1\n" | sh racket-install.sh --create-dir --unix-style --dest /usr/ && \
-    rm racket-install.sh
 
 ### Config Racket
 
 ENV SSL_CERT_FILE="/etc/ssl/certs/ca-certificates.crt"
 ENV SSL_CERT_DIR="/etc/ssl/certs"
 
-RUN raco setup
-RUN raco pkg config --set catalogs \
-    "https://download.racket-lang.org/releases/8.1/catalog/" \
-    "https://pkg-build.racket-lang.org/server/built/catalog/" \
-    "https://pkgs.racket-lang.org" \
-    "https://planet-compats.racket-lang.org"
-
-# RUN raco pkg install \ 
-#    srfi-lite-lib \
-#    zo-lib \
-#    draw-x86_64-linux-natipkg-3 \
-#    draw-x11-x86_64-linux-natipkg \
-#    draw-ttf-x86_64-linux-natipkg
-
-#RUN echo "a" | raco pkg install --scope installation drracket
-RUN raco pkg install --auto --scope installation db-lib
 
 ### Env Var and Create Emacs User
 # Fix "Couldn't register with accessibility bus" error message
@@ -80,7 +56,8 @@ ENV UNAME="phage" \
     GID="1000" \
     WORK="/mnt/work" \
     SHELL="/bin/bash"
-
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+ENV PATH /opt/conda/bin:$PATH
     ### Create Emacs User and Group
 COPY emacs_user.sh /tmp/
 
@@ -88,6 +65,11 @@ COPY emacs_user.sh /tmp/
 RUN chown root /tmp/emacs_user.sh && \
     chmod 700  /tmp/emacs_user.sh && \
     /tmp/emacs_user.sh
+#RUN adduser phage sudo
+
+#RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> \
+#    /etc/sudoers
+
 USER phage
 WORKDIR /home/phage
 
@@ -98,29 +80,30 @@ RUN mkdir ~/.emacs.d && \
 
 RUN git clone https://github.com/emacsmirror/modus-themes.git ~/.emacs.d/modus-themes
 
-COPY --chown=phage:phage ./install*.el /home/phage/.emacs.d/
-RUN emacs -l ~/.emacs.d/install_base.el -batch 
-
-### Install tools
-RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-RUN sed -i "s|robbyrussell|jtriley|g" ~/.zshrc
-RUN git clone https://github.com/gpakosz/.tmux.git && \
-    ln -s -f .tmux/.tmux.conf && \
-    cp .tmux/.tmux.conf.local .
+### install fzf
 RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
     ~/.fzf/install
 
+
+### Install tools
+RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+RUN git clone https://github.com/gpakosz/.tmux.git && \
+    ln -s -f .tmux/.tmux.conf && \
+    cp .tmux/.tmux.conf.local .
+
+RUN git clone https://github.com/esc/conda-zsh-completion \
+    ${ZSH_CUSTOM:=~/.oh-my-zsh/custom}/plugins/conda-zsh-completion
+
 COPY --chown=phage:phage ./.zsh_history /home/phage/
 RUN echo 'alias xclip="xclip -selection c"' >> ~/.zshrc
+RUN sed -i "s|robbyrussell|jtriley|g" ~/.zshrc
 RUN echo 'set -g default-command $SHELL' >> ~/.tmux.conf.local
 
-### Install racket packages
-RUN raco pkg install --auto http-easy yaml rfc6455 web-server request relation 
+RUN pip3 install alpaca-trade-api numpy pandas scipy pyyaml
+COPY --chown=phage:phage ./install*.el /home/phage/.emacs.d/
+RUN emacs -l ~/.emacs.d/install_base.el -batch 
 
-### Start Up
-
-RUN mkdir ~/sqlite
+COPY --chown=phage:phage ./python-magic.el /home/phage/.emacs.d/custom/
 COPY --chown=phage:phage ./init.el /home/phage/.emacs.d/
 COPY --chown=phage:phage ./config.el /home/phage/.emacs.d/
-ENTRYPOINT ["tmux", "-u"]
-
