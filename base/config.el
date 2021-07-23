@@ -1,10 +1,9 @@
 ;;; Geneneral Setting
 ;;;; esc to quit everthing
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-;;;; load path
+;;;; modus theme
 (add-to-list 'load-path "~/.emacs.d/modus-themes")
 (add-to-list 'load-path "~/.emacs.d/custom")
-;;;; modus theme
 (require 'modus-themes)
 ;; Load the theme files before enabling a theme (else you get an error).
 (modus-themes-load-themes)
@@ -167,13 +166,7 @@
 
 
 ;;;; outline within dockerfile
-(add-hook 'dockerfile-mode-hook
-  (lambda ()
-    (setq outline-regexp "###\\(#*\\)")))
-;;";;;\\(;* [^]\\|###autoload\\)\\|("
-; note that the "^" is *implicit* at the beginning of the regexp
-;;;; outline with python
-(require 'python-magic)
+
 
 ;;; Evil Mode
 ;;;; evil main deprecated
@@ -427,21 +420,31 @@
   ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
 )
 
-;;; Python Setup
+;;; Racket Setup
 ;;;; main racket setup
 ;;(show-paren-mode 1)
 (setq show-paren-delay 0)
+(require 'racket-mode)
 
 
 (use-package rainbow-delimiters
              :ensure t
              :config (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
+
+;; Allows moving through wrapped lines as they appear
+(add-hook 'racket-mode-hook #'racket-unicode-input-method-enable)
+(add-hook 'racket-repl-mode-hook #'racket-unicode-input-method-enable)
+(define-key racket-mode-map (kbd "S-<return>") 'racket-send-definition)
+(define-key racket-mode-map (kbd "C-S-<return>") 'racket-send-region)
+(define-key racket-mode-map (kbd "C-\\") 'racket-insert-lambda)
+
 ;;;; paredit setup
 (use-package paredit
   :ensure t
   :config
   (dolist (m '(emacs-lisp-mode-hook
-	       python-mode-hook  ))
+	       racket-mode-hook
+	       racket-repl-mode-hook))
     (add-hook m #'enable-paredit-mode))
   (bind-keys :map paredit-mode-map
 	     ("{"   . paredit-open-curly)
@@ -451,6 +454,9 @@
 	       ("M-[" . paredit-wrap-square)
 	       ("M-{" . paredit-wrap-curly))))
 
+;; (add-hook 'emacs-lisp-mode-hook 'evil-paredit-mode)
+;; (add-hook 'racket-mode-hook #'paredit-mode)
+;; (add-hook 'racket-mode-hook 'evil-paredit-mode)
 ;;;; display repl in another frame
 
 (setq display-buffer-alist nil)
@@ -494,3 +500,16 @@
 ;;; perspective
 (require 'perspective)
 (persp-mode 1)
+
+
+;;; docker
+(use-package docker
+  :ensure t
+  :bind ("C-c d" . docker))
+
+
+(add-hook 'dockerfile-mode-hook
+  (lambda ()
+    (setq outline-regexp "###\\(#*\\)")))
+;;";;;\\(;* [^]\\|###autoload\\)\\|("
+; note that the "^" is *implicit* at the beginning of the regexp

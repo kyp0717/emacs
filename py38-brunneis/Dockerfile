@@ -1,43 +1,18 @@
 ### Base Image
-FROM andreacorallo/emacs-nativecomp
-
+FROM brunneis/python:3.8.6-ubuntu-20.04
 ### Dependencies
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y \
             curl \
             git \
-            gnupg \
-            gpm \
-            imagemagick \
-            ispell \
-            libacl1 \
-            libasound2 \
-            libcanberra-gtk3-module \
-            libdbus-1-3 \
-            libgif7 \
-            libgnutls30 \
-            libgtk-3-0 \
-            libjansson4 \
-            libjpeg-dev \
-            liblcms2-2 \
-            libm17n-0 \
-            libpng16-16 \
-            librsvg2-2 \
-            libsm6 \
-            libtiff5 \
-            libx11-xcb1 \
-            libxml2 \
-            libxpm4 \
            openssh-client \
             texinfo \
             rlwrap \
-    default-jre \
     zsh \
     wget \
-    tmux \
     sudo \
-    lsb-release python3-pip cmake libtool libtool-bin\
+    lsb-release python3-pip ssh \
     && rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache/*
 
 ### Config Racket
@@ -67,23 +42,14 @@ RUN chown root /tmp/emacs_user.sh && \
     /tmp/emacs_user.sh
 #RUN adduser phage sudo
 
-#RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> \
-#    /etc/sudoers
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> \
+    /etc/sudoers
 
 USER phage
 WORKDIR /home/phage
-
-### Configure Emacs
-RUN mkdir ~/.emacs.d && \
-    mkdir ~/.emacs.d/themes && \ 
-    mkdir ~/.emacs.d/custom
-
-RUN git clone https://github.com/emacsmirror/modus-themes.git ~/.emacs.d/modus-themes
-
 ### install fzf
 RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
     ~/.fzf/install
-
 
 ### Install tools
 RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
@@ -95,15 +61,9 @@ RUN git clone https://github.com/gpakosz/.tmux.git && \
 RUN git clone https://github.com/esc/conda-zsh-completion \
     ${ZSH_CUSTOM:=~/.oh-my-zsh/custom}/plugins/conda-zsh-completion
 
-COPY --chown=phage:phage ./.zsh_history /home/phage/
 RUN echo 'alias xclip="xclip -selection c"' >> ~/.zshrc
 RUN sed -i "s|robbyrussell|jtriley|g" ~/.zshrc
 RUN echo 'set -g default-command $SHELL' >> ~/.tmux.conf.local
 
 RUN pip3 install alpaca-trade-api numpy pandas scipy pyyaml
-COPY --chown=phage:phage ./install*.el /home/phage/.emacs.d/
-RUN emacs -l ~/.emacs.d/install_base.el -batch 
 
-COPY --chown=phage:phage ./python-magic.el /home/phage/.emacs.d/custom/
-COPY --chown=phage:phage ./init.el /home/phage/.emacs.d/
-COPY --chown=phage:phage ./config.el /home/phage/.emacs.d/
