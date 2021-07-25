@@ -65,5 +65,4 @@
 (package-install 'perspective)
 (package-install 'vterm)
 (package-install 'docker-tramp)
-(package-install 'docker)
 (all-the-icons-install-fonts t)
